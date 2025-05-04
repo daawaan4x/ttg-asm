@@ -1,8 +1,0 @@
-{
-	"[c][cpp]": {
-		"editor.formatOnSave": false, 
-	},
-	"files.associations": {
-		"iostream": "cpp"
-	}
-}
