@@ -120,7 +120,6 @@ done_tokenize:
 # MARK: LEXER (DEBUG)
 
 fn_dump_tokens:
-    PUSH_STACK_RA()
     la      $t0,    arr_tokens                  # *$t0 = &arr_tokens
     li      $t1,    0                           # $t2 = 0 // for token counting
     lb      $t2,    arr_tokens_size             # *$t1 = &arr_tokens_size
@@ -136,17 +135,16 @@ loop_dump_tokens:
     lw      $t6,    0($t6)                      # $t6 = *$t6 // load element
 
     # format: <TYPE>:\t"<CHAR>" (<CHAR_CODE>)\n"
-    PRINT_STR(move, $t6)                # <TYPE>
+    PRINT_STR(move, $t6)        # <TYPE>
     PRINT_CSTR(":\t\"")
-    PRINT_CHAR(move, $t3)               # <CHAR>
+    PRINT_CHAR(move, $t3)       # <CHAR>
     PRINT_CSTR("\" (")
-    PRINT_INT(move, $t3)                # <CHAR_CODE>
+    PRINT_INT(move, $t3)        # <CHAR_CODE>
     PRINT_CSTR(")\n")
 
-    addi    $t0,    $t0,    2     # $t0 += 2 // increment to next element
-    addi    $t1,    $t1,    1     # $t1 += 1 // increment token counter
+    addi    $t0,    $t0,    2       # $t0 += 2 // increment to next element
+    addi    $t1,    $t1,    1       # $t1 += 1 // increment token counter
     j       loop_dump_tokens
 
 done_dump_tokens:
-    POP_STACK_RA()
     jr      $ra
