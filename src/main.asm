@@ -2,12 +2,12 @@
 
 # MARK: CONSTANTS
 
-.eqv    i_TOKEN_VAR             0       # P, Q, R
+.eqv    i_TOKEN_VAR             0       # A-Z
 .eqv    i_TOKEN_PAREN_OPEN      1       # (
 .eqv    i_TOKEN_PAREN_CLOSE     2       # )
-.eqv    i_TOKEN_NOT             3       # !
-.eqv    i_TOKEN_AND             4       # &
-.eqv    i_TOKEN_OR              5       # |
+.eqv    i_TOKEN_NOT             3       # !, ~
+.eqv    i_TOKEN_AND             4       # &, ^
+.eqv    i_TOKEN_OR              5       # |, v
 .eqv    i_TOKEN_ERROR           6
 
 .eqv    i_NODE_UNARY            0       # operator (operand)
@@ -45,10 +45,15 @@ arr_tokens_size:            .byte
 # MARK: MAIN
 
 main:
-    PRINT_CSTR("Enter logical expression: ")
+    PRINT_CSTR("Enter logical expression (max 20 chars)\n")
+    PRINT_CSTR(" --> ")
     READ_STR(str_input_expr, 100)
+    
     jal     fn_tokenize
+    
+    PRINT_CSTR("\n")
     jal     fn_dump_tokens
+    
     EXIT()
 
 
@@ -82,23 +87,29 @@ loop_tokenize:
     li      $t4,    i_TOKEN_NOT             # $t4 = i_TOKEN_NOT
     li      $t3,    '!'                     # $t3 = '!'
     beq     $t2,    $t3,    save_token
+    li      $t3,    '~'                     # $t3 = '~'
+    beq     $t2,    $t3,    save_token
 
     li      $t4,    i_TOKEN_AND             # $t4 = i_TOKEN_AND
     li      $t3,    '&'                     # $t3 = '&'
+    beq     $t2,    $t3,    save_token
+    li      $t3,    '^'                     # $t3 = '^'
     beq     $t2,    $t3,    save_token
 
     li      $t4,    i_TOKEN_OR              # $t4 = i_TOKEN_OR
     li      $t3,    '|'                     # $t3 = '|'
     beq     $t2,    $t3,    save_token
+    li      $t3,    'v'                     # $t3 = 'v'
+    beq     $t2,    $t3,    save_token
 
     li      $t4,    i_TOKEN_VAR             # $t4 = i_TOKEN_VAR
-    li      $t3,    'P'                     # $t3 = 'P'
-    beq     $t2,    $t3,    save_token
-    li      $t3,    'Q'                     # $t3 = 'Q'
-    beq     $t2,    $t3,    save_token
-    li      $t3,    'R'                     # $t3 = 'R'
-    beq     $t2,    $t3,    save_token
+    li      $t3,    'A'                     # $t3 = 'A' (65 in ASCII)
+    blt     $t2,    $t3,    error_token     # if char < 'A', skip
+    li      $t3,    'Z'                     # $t3 = 'Z' (90 in ASCII)
+    bgt     $t2,    $t3,    error_token     # if char > 'Z', skip
+    j       save_token
 
+error_token:
     li      $t4,    i_TOKEN_ERROR           # $t4 = i_TOKEN_ERROR
 
 save_token:
