@@ -577,7 +577,7 @@ fn_parse_expr_not:
     jal     fn_advance_token        
     jal     fn_parse_expr_not       # expr:$v0 = fn_parse_expr_not()
     beqz    $v0,    fail_parse_not
-    move    $t0,    $v0             # operand:$t0 = expr:$v0
+    move    $s0,    $v0             # operand:$s0 = expr:$v0
 
     # Create Node
     li      $a0,    i_NODE_UNARY    # node_type:$a0 = i_NODE_UNARY
@@ -586,7 +586,7 @@ fn_parse_expr_not:
     
     # Assign Child
     move    $a0,    $v0     # parent:$a0 = new_node:$v0
-    move    $a1,    $t0     # child:$a1 = operand:$t0
+    move    $a1,    $s0     # child:$a1 = operand:$s0
     jal     fn_set_left_child
     
     li      $t4,    DEBUG_MODE
@@ -594,7 +594,7 @@ fn_parse_expr_not:
     PRINT_CSTR("NOT @ ")
     PRINT_INT(move, $a0)
     PRINT_CSTR(" of ")
-    PRINT_INT(move, $t0)
+    PRINT_INT(move, $s0)
     PRINT_CSTR("\n\n")
 skip_debug_parse_expr_not:
     j       exit_parse_not
@@ -771,6 +771,9 @@ loop_indent:
 end_loop_indent:
     PRINT_CSTR("- ")
     PRINT_STR(move, $t4)
+    PRINT_CSTR(" @ ")
+    lw      $a0,    4($sp)
+    PRINT_INT(move, $a0)
     addi    $a1,    $a1,    1                   # indent:$a1 += 1
 
     # if type == i_NODE_GROUP
@@ -883,7 +886,7 @@ fn_dump_expr_unary:
     PRINT_STR(move, $t4)
     PRINT_CSTR("):")
 
-    lw      $a0,    offset_NODE_LEFT($s0)       # left:$t0 = node:$a0->left
+    lw      $a0,    offset_NODE_LEFT($a0)       # left:$a0 = node:$a0->left
     PRINT_CSTR("\n")
     jal     fn_dump_expr
 
