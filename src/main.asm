@@ -1,4 +1,4 @@
-# MARK: ��� README ���
+# MARK: --- README ---
 
 .eqv    DEBUG_MODE      1       # Controls whether logging debug data is enabled
 
@@ -68,7 +68,7 @@ str_input_expr:     .space      i_MAX_INPUT
 #     word type (4 bytes)
 #     word value (4 bytes)
 .align 4
-arr_tokens:             .space      200      # 50 chars * 4 bytes
+arr_tokens:             .space      400      # 50 chars * 8 bytes
 arr_tokens_size:        .word       0
 arr_tokens_valid:       .word       1
 
@@ -80,7 +80,7 @@ current_token_index:    .word       0       # For iterating arr_tokens
 #     word *left (4 bytes)
 #     word *right (4 bytes)
 .align 4
-tree_nodes:             .space      800     # 50 char * 16 bytes
+tree_nodes:             .space      800     # 50 nodes * 16 bytes
 tree_nodes_root:        .word       0
 tree_nodes_size:        .word       0
 
@@ -93,7 +93,7 @@ tree_nodes_size:        .word       0
 main:
     PRINT_CSTR("Enter logical expression (max 20 chars)\n")
     PRINT_CSTR(" --> ")
-    READ_STR(str_input_expr, 100)
+    READ_STR(str_input_expr, i_MAX_INPUT)
     PRINT_CSTR("\n")
 
     jal     fn_tokenize
@@ -188,7 +188,7 @@ error_token:
 save_token:
     sw      $t4,    offset_TOKEN_TYPE($t1)                  # &arr_tokens:$t1->type = $t4 // save current type
     addi    $t5,    $t5,    1               # count:$t5 += 1 // increment count of tokens
-    addi    $t1,    $t1,    i_TOKEN_SIZE    # $t1 += 2 // increment to next element
+    addi    $t1,    $t1,    i_TOKEN_SIZE    # $t1 += 8 // increment to next element
 
 skip_char:
     addi    $t0,    $t0,    1               # str_input_expr:$t0 += 1 // increment to next char
@@ -307,7 +307,7 @@ skip_dump_ast_check:
 
 # MARK: EXPR PARSER UTILITIES
 
-# Function: fn_tokens_check
+# Function: fn_get_token
 # Description: Loads the current token
 # Arguments: None
 # Returns: $v0 = Token Type, $v1 = Token Value
@@ -355,9 +355,9 @@ fn_alloc_node:
     mul     $t3,    $t0,    i_NODE_SIZE     # offset:$t3 = tree_nodes_size * i_NODE_SIZE
     add     $t2,    $t2,    $t3             # tree_nodes:$t2 += offset:$t3
     
-    sw      $a0,        offset_NODE_TYPE($t2)      # tree_nodes:$t2->type = type:$a0
+    sw      $a0,        offset_NODE_TYPE($t2)       # tree_nodes:$t2->type = type:$a0
     sw      $a1,        offset_NODE_VALUE($t2)      # tree_nodes:$t2->value = value:$a1
-    sw      $zero,      offset_NODE_LEFT($t2)      # tree_nodes:$t2->*left = null
+    sw      $zero,      offset_NODE_LEFT($t2)       # tree_nodes:$t2->*left = null
     sw      $zero,      offset_NODE_RIGHT($t2)      # tree_nodes:$t2->*right = null
 
     li      $t4,    DEBUG_MODE
@@ -546,7 +546,7 @@ done_parse_and:
     j       exit_parse_and
 
 fail_parse_and:
-    li      $v0,    0       # # expr:$v0 = null
+    li      $v0,    0       # expr:$v0 = null
 
 exit_parse_and:
     lw      $s1,    8($sp)     
@@ -663,7 +663,7 @@ exit_parse_primary:
     addi    $sp,    $sp,    12
     jr      $ra
 
-# Function: fn_parse_expr_primary
+# Function: fn_parse_expr_group
 # Description: Parses a Group Expression - expr_group = ( expr )
 # Arguments: None
 # Returns: $v0 = Node
