@@ -113,10 +113,11 @@ function generate_truth_combinations(variables):
   combinations = empty list
   total_combinations = 2 ^ (count of variables)
   for each number from 0 to total_combinations - 1:
-    create an empty dictionary called truth_values
+    truth_values = boolean[26]
     for each variable and index:
-      value = get (index)'th bit digit of number
-      set value for variable in truth_values dictionary
+      offset = variable - 'A'
+      value = get (offset)'th bit digit of number
+      truth_values[offset] = value
     add truth_values to combinations list
   return combinations
 
