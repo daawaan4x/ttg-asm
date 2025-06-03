@@ -1,12 +1,10 @@
 # MARK: --- README ---
 
-.eqv    DEBUG_MODE      1       # Controls whether logging debug data is enabled
+.eqv    DEBUG_MODE      0       # Controls whether logging debug data is enabled
 
 
 
 .include "./system.asm"
-
-
 
 # MARK: CONSTANTS
 
@@ -23,7 +21,7 @@
 .eqv    i_NODE_UNARY            2       # operator (expr)
 .eqv    i_NODE_BINARY           3       # (expr) operator (expr)
 
-.eqv    i_MAX_INPUT             50
+.eqv    i_MAX_INPUT             100
 .eqv    i_NODE_SIZE             16
 .eqv    i_TOKEN_SIZE            8
 
@@ -68,7 +66,7 @@ str_input_expr:     .space      i_MAX_INPUT
 # Token:
 #     word type (4 bytes)
 #     word value (4 bytes)
-arr_tokens:             .space      400      # 50 chars * 8 bytes
+arr_tokens:             .space      800      # 100 chars * 8 bytes
 arr_tokens_size:        .word       0
 arr_tokens_valid:       .word       1
 
@@ -79,7 +77,7 @@ current_token_index:    .word       0       # For iterating arr_tokens
 #     word value (4 bytes)
 #     word *left (4 bytes)
 #     word *right (4 bytes)
-tree_nodes:             .space      800     # 50 nodes * 16 bytes
+tree_nodes:             .space      1600     # 100 nodes * 16 bytes
 tree_nodes_root:        .word       0
 tree_nodes_size:        .word       0
 
@@ -102,7 +100,7 @@ arr_truth_values_size:      .word     0
 # MARK: MAIN
 
 main:
-    PRINT_CSTR("Enter logical expression (max 20 chars)\n")
+    PRINT_CSTR("Enter logical expression (max 100 chars)\n")
     PRINT_CSTR(" --> ")
     READ_STR(str_input_expr, i_MAX_INPUT)
     PRINT_CSTR("\n")
@@ -301,7 +299,7 @@ done_collect_vars:
     sw      $t8,    0($t6)                  # arr_var_size = var_count
     
     li      $t9,    DEBUG_MODE
-    beqz    $t9,    skip_collect_vars
+    beqz    $t9,    exit_collect_vars
     PRINT_CSTR("Total Count: ")
     PRINT_INT(move, $t8)
     PRINT_CSTR("\n\n")
@@ -365,17 +363,25 @@ done_dump_tokens:
 # Arguments: None
 # Returns: None
 fn_parse_ast:
-    addi    $sp,    $sp,    -4
+    addi    $sp,    $sp,    -8
     sw      $ra,    0($sp)
+    sw      $s0,    4($sp)
 
     # if root_node:$v0 == null, exit
     jal     fn_parse_expr               # root_node:$v0 = fn_parse_expr()
     beqz    $v0,    exit_parse_ast
     sw      $v0,    tree_nodes_root     # &tree_nodes_root = root_node:$v0
     
+    # if fn_get_token != eof, exit // if there are still remaining tokens 
+    jal     fn_get_token
+    li      $t0,        -1
+    beq     $v0,        $t0,    exit_parse_ast
+    sw      $zero,      tree_nodes_root     # &tree_nodes_root = null
+
 exit_parse_ast:
+    lw      $s0,    4($sp)
     lw      $ra,    0($sp)
-    addi    $sp,    $sp,    4
+    addi    $sp,    $sp,    8
     jr      $ra
 
 
